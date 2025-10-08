@@ -1,0 +1,80 @@
+# Configuration file for Dust Persistence Study
+# Temporal Persistence of Dust-Induced Cloud Microphysical Anomalies
+
+study_domain:
+  name: "Mediterranean Basin"
+  bbox: [5, 30, 40, 50]  # [min_lon, min_lat, max_lon, max_lat]
+  resolution: 0.25  # degrees
+  projection: "EPSG:4326"
+
+time_period:
+  start_date: "2002-01-01"
+  end_date: "2022-12-31"
+  focus_months: [3, 4, 5, 6, 7, 8, 9]  # Spring-Summer
+  analysis_frequency: "daily"
+
+dust_detection:
+  aod_threshold: 0.4
+  min_duration: 2  # days
+  caliop_dust_type: 1  # Pure dust
+  max_gap: 1  # maximum gap in days between consecutive high AOD days
+  
+cloud_analysis:
+  variables: 
+    - "effective_radius"
+    - "optical_thickness" 
+    - "fraction"
+  persistence_window: 7  # days
+  significance_threshold: 0.05
+  climatology_window: 30  # days for baseline calculation
+
+data_sources:
+  modis:
+    products:
+      - "MOD04_L2"  # Terra AOD
+      - "MYD04_L2"  # Aqua AOD
+      - "MOD06_L2"  # Terra cloud properties
+      - "MYD06_L2"  # Aqua cloud properties
+    collection: "006"
+    resolution: "1km"
+  
+  caliop:
+    product: "LID_L2_05kmAPro"
+    version: "4-20"
+    resolution: "5km"
+  
+  era5:
+    variables:
+      - "geopotential"
+      - "temperature"
+      - "relative_humidity"
+      - "u_component_of_wind"
+      - "v_component_of_wind"
+    resolution: "0.25x0.25"
+    levels: [1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100, 70, 50, 30, 20, 10]
+
+statistical_analysis:
+  regression_variables:
+    - "dust_intensity"
+    - "atmospheric_stability"
+    - "humidity"
+    - "wind_speed"
+    - "cloud_type"
+  significance_level: 0.05
+  confidence_interval: 0.95
+
+output:
+  figures:
+    format: "png"
+    dpi: 300
+    style: "seaborn-v0_8"
+  tables:
+    format: "csv"
+  results:
+    format: "netcdf"
+
+paths:
+  data_dir: "data"
+  results_dir: "results"
+  figures_dir: "results/figures"
+  tables_dir: "results/tables"

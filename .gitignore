@@ -81,7 +81,7 @@ results/tables/*.csv
 results/tables/*.xlsx
 
 # Configuration with sensitive data
-config/study_config.yaml
+config/api_keys.yaml
 .env
 secrets.yaml
 

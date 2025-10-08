@@ -139,7 +139,7 @@ class DataAcquisition:
             logger.error(f"Failed to download MODIS cloud data: {e}")
             return None
     
-    def get_era5_data(self, date, variables=None):
+    def get_era5_data(self, date, variables=None, pressure_levels=None):
         """
         Download ERA5 reanalysis data.
         
@@ -149,6 +149,8 @@ class DataAcquisition:
             Date for data download
         variables : list, optional
             List of variables to download
+        pressure_levels : list, optional
+            List of pressure levels for pressure-level data
             
         Returns:
         --------
@@ -160,21 +162,37 @@ class DataAcquisition:
         area = self.config['study_domain']['bbox']  # [N, W, S, E]
         
         try:
-            result = self.cds_client.retrieve(
-                'reanalysis-era5-single-levels',
-                {
+            # Determine if we need single-level or pressure-level data
+            if pressure_levels is not None:
+                dataset_name = 'reanalysis-era5-pressure-levels'
+                request_params = {
                     'product_type': 'reanalysis',
                     'variable': variables,
+                    'pressure_level': pressure_levels,
                     'year': date.year,
-                    'month': date.month,
-                    'day': date.day,
+                    'month': f"{date.month:02d}",
+                    'day': f"{date.day:02d}",
                     'time': ['00:00', '06:00', '12:00', '18:00'],
                     'area': area,
                     'format': 'netcdf'
                 }
-            )
+                filename = f"era5_pressure_{date.strftime('%Y%m%d')}.nc"
+            else:
+                dataset_name = 'reanalysis-era5-single-levels'
+                request_params = {
+                    'product_type': 'reanalysis',
+                    'variable': variables,
+                    'year': date.year,
+                    'month': f"{date.month:02d}",
+                    'day': f"{date.day:02d}",
+                    'time': ['00:00', '06:00', '12:00', '18:00'],
+                    'area': area,
+                    'format': 'netcdf'
+                }
+                filename = f"era5_single_{date.strftime('%Y%m%d')}.nc"
             
-            filename = f"era5_{date.strftime('%Y%m%d')}.nc"
+            result = self.cds_client.retrieve(dataset_name, request_params)
+            
             filepath = self.raw_dir / "era5" / filename
             filepath.parent.mkdir(parents=True, exist_ok=True)
             
